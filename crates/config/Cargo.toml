@@ -1,7 +1,10 @@
 [package]
-name = "config"
+name = "injector-config"
 version = "0.1.0"
 edition = "2024"
 description = "Shared configuration types and loading for the injector service"
 
 [dependencies]
+config = "0.14"
+serde = { version = "1", features = ["derive"] }
+thiserror = "2"
