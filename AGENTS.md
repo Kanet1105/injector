@@ -15,3 +15,4 @@ Load only when relevant:
 - Tracing (Tempo/Jaeger) → `knowledge/tracing.md`
 - Metrics (Prometheus/Grafana) → `knowledge/metrics.md`
 - Architecture decisions → `knowledge/decisions.md`
+- Rust idioms → `knowledge/rust-idioms.md`
