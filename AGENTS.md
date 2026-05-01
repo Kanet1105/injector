@@ -6,6 +6,10 @@ Observability stack: Redpanda, Redis, Prometheus, Grafana, Tempo.
 
 All commits follow Conventional Commits — see `CONTRIBUTING.md`.
 
+## Rust
+
+Always load `knowledge/rust-guidelines.md` before writing or reviewing any Rust code.
+
 ## Knowledge
 
 Load only when relevant:
@@ -15,4 +19,3 @@ Load only when relevant:
 - Tracing (Tempo/Jaeger) → `knowledge/tracing.md`
 - Metrics (Prometheus/Grafana) → `knowledge/metrics.md`
 - Architecture decisions → `knowledge/decisions.md`
-- Rust idioms → `knowledge/rust-idioms.md`
