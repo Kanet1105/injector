@@ -10,6 +10,10 @@ All commits follow Conventional Commits — see `CONTRIBUTING.md`.
 
 Always load `knowledge/rust-guidelines.md` before writing or reviewing any Rust code.
 
+## Coding
+
+Always load `knowledge/coding-guidelines.md` before writing code in any language.
+
 ## Knowledge
 
 Load only when relevant:
