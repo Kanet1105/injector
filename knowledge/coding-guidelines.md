@@ -34,6 +34,7 @@ Applies to all languages in this project.
 - If you notice unrelated dead code, mention it — don't delete it
 - Every changed line should trace directly to the request
 - One logical change per commit (see `CONTRIBUTING.md`)
+- `just ci` must pass before every commit — no exceptions (`fmt-check`, `lint`, `test`, `build`)
 
 ---
 
