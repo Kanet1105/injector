@@ -1,6 +1,6 @@
 # injector
 
-[![CI](https://github.com/Kanet1105/injector/actions/workflows/ci.yml/badge.svg)](https://github.com/Kanet1105/injector/actions/workflows/ci.yml)
+[![CI](https://github.com/Kanet1105/injector/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Kanet1105/injector/actions/workflows/ci.yml)
 
 Data ingestion pipeline — pulls Google News RSS feeds and produces to Redpanda.
 
