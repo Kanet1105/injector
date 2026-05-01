@@ -47,3 +47,53 @@ The binary crate that assembles the pipeline does `NewsItem::from(item)` (or equ
 ### Rejected alternatives
 - `From` in `rss-feed` — couples fetcher to proto, recompiles on wire format changes.
 - Dedicated `transform` crate now — overkill for one source type.
+
+---
+
+## ADR-003 — Metrics facade
+
+**Date:** 2026-05-01
+**Status:** Decided
+
+### Decision
+Use the `metrics` crate (facade) in library crates. Exporter (`metrics-exporter-prometheus`) wired in the binary only.
+
+### Why
+Library crates stay decoupled from the exporter. The binary decides how metrics are exposed.
+
+---
+
+## ADR-004 — HTTP backoff strategy
+
+**Date:** 2026-05-01
+**Status:** Decided
+
+### Decision
+Use `backon` for retry with exponential backoff on HTTP failures in `rss-feed`.
+On each failed attempt: increment metrics counter + `tracing::warn`.
+Max retries configured via `PollerConfig.max_retries`. Hard error logged after exhaustion.
+
+### Why
+`backon` is async-native, wraps any async fn cleanly, actively maintained.
+`tokio-retry` older and less ergonomic. Manual backoff adds boilerplate for no gain.
+
+---
+
+## ADR-005 — Configuration loading
+
+**Date:** 2026-05-01
+**Status:** Decided
+
+### Decision
+Use `config` crate with layered sources:
+1. `config.toml` — pollers array + defaults
+2. Environment variables (`INJECTOR__` prefix) — override scalars
+
+`Vec<PollerConfig>` lives in `config.toml` only — env vars cannot cleanly express arrays.
+
+### Settings shape
+```
+Settings
+  redpanda: RedpandaConfig  { brokers, topic, group_id }
+  pollers:  Vec<PollerConfig> { query, interval_secs, max_retries }
+```
