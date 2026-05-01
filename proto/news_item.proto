@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package injector.news;
+
+// NewsItem represents a single article from a Google News RSS feed.
+// One NewsItem = one Redpanda message.
+// Message key = guid (see dedup note below).
+message NewsItem {
+  // --- Article fields ---
+  string guid        = 1; // Unique article ID. Used as Redpanda message key.
+  string title       = 2;
+  string link        = 3;
+  string description = 4; // Short snippet from the feed.
+  int64  pub_date    = 5; // Unix timestamp (seconds).
+
+  // --- Source ---
+  string source_name = 6; // e.g. "The Verge"
+  string source_url  = 7; // e.g. "https://www.theverge.com"
+
+  // --- Query metadata ---
+  // The Google News search query that produced this feed, e.g. "artificial intelligence".
+  // Lets consumers filter/route by topic without parsing the feed URL.
+  string query       = 8;
+
+  // --- Dedup ---
+  // DECISION: dedup by guid used as the Redpanda message key.
+  // Producers must set key=guid on every message.
+  // With a compacted topic, the broker retains only the latest message per key,
+  // giving at-most-once storage for duplicate articles automatically.
+  // Consumers that need strict exactly-once can additionally track seen guids
+  // in Redis (TTL-based). No explicit hash field needed at this layer.
+  // Revisit if we ingest feeds where guid is absent or unstable.
+
+  // --- Future fields (not yet needed) ---
+  // string thumbnail_url = 20; // <media:content url="..."> — excluded to keep messages small
+}
