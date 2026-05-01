@@ -6,6 +6,11 @@ Observability stack: Redpanda, Redis, Prometheus, Grafana, Tempo.
 
 All commits follow Conventional Commits — see `CONTRIBUTING.md`.
 
+Before every commit, `just ci` must pass:
+```
+just ci   # fmt-check + lint + test + build
+```
+
 ## Rust
 
 Always load `knowledge/rust-guidelines.md` before writing or reviewing any Rust code.
