@@ -1,0 +1,14 @@
+[redpanda]
+brokers  = "localhost:9092"
+topic    = "injector.news"
+group_id = "injector"
+
+[[pollers]]
+query         = "artificial intelligence"
+interval_secs = 60
+max_retries   = 3
+
+[[pollers]]
+query         = "rust programming"
+interval_secs = 120
+max_retries   = 3
