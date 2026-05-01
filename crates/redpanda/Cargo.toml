@@ -1,0 +1,7 @@
+[package]
+name = "redpanda"
+version = "0.1.0"
+edition = "2024"
+description = "Redpanda producer/consumer abstractions using samsa (pure-Rust Kafka protocol)"
+
+[dependencies]
