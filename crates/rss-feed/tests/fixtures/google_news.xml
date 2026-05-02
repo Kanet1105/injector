@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>Google News - artificial intelligence</title>
+    <link>https://news.google.com/rss/search?q=artificial+intelligence</link>
+    <language>en-US</language>
+    <lastBuildDate>Thu, 01 May 2026 10:00:00 GMT</lastBuildDate>
+
+    <item>
+      <title>OpenAI releases GPT-5</title>
+      <link>https://www.theverge.com/2026/5/1/openai-gpt5</link>
+      <guid isPermaLink="false">tag:google.com,2013:googlealerts/feed:abc123</guid>
+      <description>&lt;b&gt;OpenAI&lt;/b&gt; announced GPT-5 today with improved reasoning.</description>
+      <pubDate>Thu, 01 May 2026 08:00:00 GMT</pubDate>
+      <source url="https://www.theverge.com">The Verge</source>
+    </item>
+
+    <item>
+      <title>DeepMind achieves AGI breakthrough</title>
+      <link>https://www.bbc.com/news/technology/deepmind-agi</link>
+      <guid isPermaLink="false">tag:google.com,2013:googlealerts/feed:def456</guid>
+      <description>DeepMind researchers claim a major milestone.</description>
+      <pubDate>Thu, 01 May 2026 09:00:00 GMT</pubDate>
+      <source url="https://www.bbc.com">BBC News</source>
+    </item>
+
+    <item>
+      <title>Missing pub_date article</title>
+      <link>https://example.com/no-date</link>
+      <guid isPermaLink="false">tag:google.com,2013:googlealerts/feed:nodatexyz</guid>
+      <description>An article with no pubDate.</description>
+      <source url="https://example.com">Example</source>
+    </item>
+
+  </channel>
+</rss>
