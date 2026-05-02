@@ -1,9 +1,15 @@
 default: fmt lint test build
 
-fmt:
+# Ensure cargo-sort is installed (no-op if already present).
+_ensure-cargo-sort:
+    @cargo sort --version > /dev/null 2>&1 || cargo install cargo-sort --quiet
+
+fmt: _ensure-cargo-sort
+    cargo sort --workspace
     cargo fmt --all
 
-fmt-check:
+fmt-check: _ensure-cargo-sort
+    cargo sort --workspace --check
     cargo fmt --all -- --check
 
 lint:
@@ -17,6 +23,9 @@ build:
 
 build-release:
     cargo build --all --release --locked
+
+coverage:
+    cargo llvm-cov --workspace --all-targets --summary-only --fail-under-lines 90
 
 check:
     cargo check --all --locked
