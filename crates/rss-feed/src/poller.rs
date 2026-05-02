@@ -49,7 +49,8 @@ impl Poller {
         F: FnMut(Vec<FeedItem>) -> Fut,
         Fut: Future<Output = ()>,
     {
-        let mut interval = tokio::time::interval(Duration::from_secs(self.config.interval_secs));
+        let mut interval =
+            tokio::time::interval(Duration::from_secs(self.config.interval_secs.get()));
 
         loop {
             interval.tick().await;

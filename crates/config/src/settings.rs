@@ -1,3 +1,5 @@
+use std::num::NonZeroU64;
+
 use serde::Deserialize;
 
 use crate::ConfigError;
@@ -26,7 +28,7 @@ pub struct PollerConfig {
     /// Google News search query — e.g. `"artificial intelligence"`
     pub query: String,
     /// How often to poll the feed, in seconds
-    pub interval_secs: u64,
+    pub interval_secs: NonZeroU64,
     /// Max retry attempts on HTTP failure before giving up (exponential backoff)
     pub max_retries: u32,
     /// Google News host language — e.g. `en-US`, `fr-FR`
@@ -96,7 +98,7 @@ mod tests {
         assert_eq!(s.redpanda.topic, "injector.news");
         assert_eq!(s.pollers.len(), 1);
         assert_eq!(s.pollers[0].query, "artificial intelligence");
-        assert_eq!(s.pollers[0].interval_secs, 60);
+        assert_eq!(s.pollers[0].interval_secs.get(), 60);
         assert_eq!(s.pollers[0].max_retries, 3);
         assert_eq!(s.pollers[0].hl, "en-US");
         assert_eq!(s.pollers[0].gl, "US");
@@ -131,6 +133,29 @@ mod tests {
 
         assert_eq!(s.pollers.len(), 2);
         assert_eq!(s.pollers[1].query, "machine learning");
+    }
+
+    #[test]
+    fn poller_config_should_reject_zero_interval() {
+        let raw = r#"
+            [redpanda]
+            brokers  = "localhost:9092"
+            topic    = "injector.news"
+            group_id = "injector"
+
+            [[pollers]]
+            query         = "rust programming"
+            interval_secs = 0
+            max_retries   = 3
+        "#;
+
+        let result = config::Config::builder()
+            .add_source(config::File::from_str(raw, config::FileFormat::Toml))
+            .build()
+            .unwrap()
+            .try_deserialize::<Settings>();
+
+        assert!(result.is_err());
     }
 
     #[test]
