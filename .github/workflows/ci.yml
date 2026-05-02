@@ -29,6 +29,9 @@ jobs:
       - name: Install just
         uses: extractions/setup-just@v2
 
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
       - name: Install buf
         uses: bufbuild/buf-setup-action@v1
 
@@ -40,6 +43,20 @@ jobs:
 
       - name: Test
         run: just test
+
+      - name: Coverage
+        shell: bash
+        run: |
+          set +e
+          just coverage | tee coverage.txt
+          status=${PIPESTATUS[0]}
+          {
+            echo "### Coverage"
+            echo '```text'
+            cat coverage.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
 
       - name: Build
         run: just build

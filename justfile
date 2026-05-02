@@ -18,6 +18,9 @@ build:
 build-release:
     cargo build --all --release --locked
 
+coverage:
+    cargo llvm-cov --workspace --all-targets --summary-only --fail-under-lines 90
+
 check:
     cargo check --all --locked
 
