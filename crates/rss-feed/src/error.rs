@@ -20,6 +20,9 @@ pub enum ParseError {
 
 #[derive(Debug, Error)]
 pub enum FetchError {
+    #[error("failed to build http client: {0}")]
+    Client(#[source] reqwest::Error),
+
     #[error("http request failed: {0}")]
     Http(#[from] reqwest::Error),
 
