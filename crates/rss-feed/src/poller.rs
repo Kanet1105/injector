@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use backon::{ExponentialBuilder, Retryable};
 use injector_config::PollerConfig;
-use tracing::warn;
+use tracing::{error, warn};
 
 use crate::error::{FetchError, ParseError};
 use crate::feed_item::FeedItem;
@@ -59,7 +59,7 @@ impl Poller {
                 Ok(items) => on_items(items).await,
                 Err(error) => {
                     metrics::counter!("rss_feed_poll_errors_total").increment(1);
-                    warn!(query = %self.config.query, %error, "rss feed poll failed");
+                    error!(query = %self.config.query, %error, "rss feed poll failed after retries");
                 }
             }
         }
