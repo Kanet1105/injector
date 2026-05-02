@@ -48,12 +48,18 @@ impl Settings {
     /// Env vars override scalar values from the file.
     /// `pollers` array must be defined in `config.toml` — env vars cannot express arrays.
     pub fn load() -> Result<Self, ConfigError> {
-        let s = config::Config::builder()
+        let config = config::Config::builder()
             .add_source(config::File::with_name("config").required(false))
             .add_source(config::Environment::with_prefix("INJECTOR").separator("__"))
             .build()?;
 
-        Ok(s.try_deserialize()?)
+        Self::from_config(config)
+    }
+
+    /// Build settings from an already assembled `config::Config`.
+    /// Useful for tests and callers that own source layering.
+    pub fn from_config(config: config::Config) -> Result<Self, ConfigError> {
+        Ok(config.try_deserialize()?)
     }
 }
 
@@ -87,12 +93,11 @@ mod tests {
             max_retries   = 3
         "#;
 
-        let s: Settings = config::Config::builder()
+        let config = config::Config::builder()
             .add_source(config::File::from_str(raw, config::FileFormat::Toml))
             .build()
-            .unwrap()
-            .try_deserialize()
             .unwrap();
+        let s = Settings::from_config(config).unwrap();
 
         assert_eq!(s.redpanda.brokers, "localhost:9092");
         assert_eq!(s.redpanda.topic, "injector.news");
