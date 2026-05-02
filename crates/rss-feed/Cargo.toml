@@ -5,3 +5,7 @@ edition = "2024"
 description = "Google News RSS feed fetcher"
 
 [dependencies]
+chrono = { version = "0.4", features = ["serde"] }
+feed-rs = "1"
+thiserror = "2"
+urlencoding = "2"
