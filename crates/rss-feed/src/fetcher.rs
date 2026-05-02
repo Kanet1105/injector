@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use reqwest::Client;
 
@@ -27,6 +27,16 @@ impl FeedFetcher {
     }
 
     pub async fn fetch_bytes(&self, url: &str) -> Result<Vec<u8>, FetchError> {
+        let started_at = Instant::now();
+        let result = self.fetch_bytes_inner(url).await;
+
+        metrics::histogram!("rss_feed_fetch_duration_seconds")
+            .record(started_at.elapsed().as_secs_f64());
+
+        result
+    }
+
+    async fn fetch_bytes_inner(&self, url: &str) -> Result<Vec<u8>, FetchError> {
         let response = self.client.get(url).send().await?;
         let status = response.status();
 
