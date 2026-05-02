@@ -1,7 +1,3 @@
 [workspace]
 resolver = "2"
-members = [
-    "crates/config",
-    "crates/redpanda",
-    "crates/rss-feed",
-]
+members = ["crates/config", "crates/redpanda", "crates/rss-feed"]
