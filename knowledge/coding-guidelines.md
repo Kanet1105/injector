@@ -51,6 +51,7 @@ Applies to all languages in this project.
 - Every error is handled, propagated, or logged with context — never silently discarded
 - No bare `let _ = fallible()` without a comment explaining why
 - Design for failure paths first, happy path second
+- External work (fetching, polling, producing, consuming, parsing external input, I/O) must add metrics + tracing immediately; see `knowledge/metrics.md`
 
 ---
 
