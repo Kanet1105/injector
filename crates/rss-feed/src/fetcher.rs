@@ -1,3 +1,5 @@
+use std::future::Future;
+use std::pin::Pin;
 use std::time::{Duration, Instant};
 
 use reqwest::Client;
@@ -5,6 +7,16 @@ use reqwest::Client;
 use crate::error::FetchError;
 
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(15);
+
+/// Fetches raw RSS feed bytes.
+///
+/// Trait boundary lets `Poller` tests use a fake fetcher instead of a real socket.
+pub trait FeedClient {
+    fn fetch_bytes<'a>(
+        &'a self,
+        url: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<u8>, FetchError>> + Send + 'a>>;
+}
 
 /// Thin HTTP client for retrieving RSS XML.
 #[derive(Debug, Clone)]
@@ -49,5 +61,14 @@ impl FeedFetcher {
         }
 
         Ok(response.bytes().await?.to_vec())
+    }
+}
+
+impl FeedClient for FeedFetcher {
+    fn fetch_bytes<'a>(
+        &'a self,
+        url: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<u8>, FetchError>> + Send + 'a>> {
+        Box::pin(async move { FeedFetcher::fetch_bytes(self, url).await })
     }
 }

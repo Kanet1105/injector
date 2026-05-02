@@ -7,25 +7,30 @@ use tracing::{error, warn};
 
 use crate::error::{FetchError, ParseError};
 use crate::feed_item::FeedItem;
-use crate::fetcher::FeedFetcher;
+use crate::fetcher::{FeedClient, FeedFetcher};
 use crate::parser::parse;
 use crate::url::{GoogleNewsLocale, google_news_rss_url};
 
 /// One Google News RSS poller for one query.
-pub struct Poller {
+pub struct Poller<F = FeedFetcher> {
     config: PollerConfig,
-    fetcher: FeedFetcher,
+    fetcher: F,
 }
 
-impl Poller {
+impl Poller<FeedFetcher> {
     pub fn new(config: PollerConfig) -> Result<Self, FetchError> {
         Ok(Self {
             config,
             fetcher: FeedFetcher::new()?,
         })
     }
+}
 
-    pub fn with_fetcher(config: PollerConfig, fetcher: FeedFetcher) -> Self {
+impl<F> Poller<F>
+where
+    F: FeedClient,
+{
+    pub fn with_fetcher(config: PollerConfig, fetcher: F) -> Self {
         Self { config, fetcher }
     }
 
@@ -44,9 +49,9 @@ impl Poller {
     }
 
     /// Run forever, calling `on_items` after each successful poll.
-    pub async fn run<F, Fut>(&self, mut on_items: F)
+    pub async fn run<H, Fut>(&self, mut on_items: H)
     where
-        F: FnMut(Vec<FeedItem>) -> Fut,
+        H: FnMut(Vec<FeedItem>) -> Fut,
         Fut: Future<Output = ()>,
     {
         let mut interval =
@@ -100,9 +105,38 @@ fn collect_items(results: Vec<Result<FeedItem, ParseError>>) -> Vec<FeedItem> {
 
 #[cfg(test)]
 mod tests {
+    use std::future::Future;
+    use std::num::NonZeroU64;
+    use std::pin::Pin;
+
     use chrono::Utc;
 
     use super::*;
+
+    #[derive(Clone)]
+    struct FakeFetcher {
+        bytes: Vec<u8>,
+    }
+
+    impl FeedClient for FakeFetcher {
+        fn fetch_bytes<'a>(
+            &'a self,
+            _url: &'a str,
+        ) -> Pin<Box<dyn Future<Output = Result<Vec<u8>, FetchError>> + Send + 'a>> {
+            Box::pin(async move { Ok(self.bytes.clone()) })
+        }
+    }
+
+    fn config() -> PollerConfig {
+        PollerConfig {
+            query: "artificial intelligence".to_owned(),
+            interval_secs: NonZeroU64::new(60).unwrap(),
+            max_retries: 3,
+            hl: "en-US".to_owned(),
+            gl: "US".to_owned(),
+            ceid: "US:en".to_owned(),
+        }
+    }
 
     fn item(guid: &str) -> FeedItem {
         FeedItem {
@@ -115,6 +149,21 @@ mod tests {
             source_url: String::new(),
             query: "query".to_owned(),
         }
+    }
+
+    #[tokio::test]
+    async fn poll_once_should_use_fetcher_trait() {
+        let poller = Poller::with_fetcher(
+            config(),
+            FakeFetcher {
+                bytes: include_bytes!("../tests/fixtures/google_news.xml").to_vec(),
+            },
+        );
+
+        let items = poller.poll_once().await.unwrap();
+
+        assert_eq!(items.len(), 2);
+        assert_eq!(items[0].title, "OpenAI releases GPT-5");
     }
 
     #[test]
