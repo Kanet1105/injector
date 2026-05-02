@@ -10,15 +10,18 @@ lint:
     cargo clippy --all-targets --all-features -- -D warnings
 
 test:
-    cargo test --all
+    cargo test --all --locked
 
 build:
-    cargo build --all
+    cargo build --all --locked
 
 build-release:
-    cargo build --all --release
+    cargo build --all --release --locked
 
 check:
-    cargo check --all
+    cargo check --all --locked
 
-ci: fmt-check lint test build
+proto-lint:
+    buf lint
+
+ci: fmt-check lint test build proto-lint
