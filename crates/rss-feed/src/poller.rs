@@ -9,7 +9,7 @@ use crate::error::{FetchError, ParseError};
 use crate::feed_item::FeedItem;
 use crate::fetcher::FeedFetcher;
 use crate::parser::parse;
-use crate::url::google_news_rss_url;
+use crate::url::{GoogleNewsLocale, google_news_rss_url};
 
 /// One Google News RSS poller for one query.
 pub struct Poller {
@@ -27,7 +27,12 @@ impl Poller {
 
     /// Fetch and parse one RSS feed snapshot.
     pub async fn poll_once(&self) -> Result<Vec<FeedItem>, FetchError> {
-        let url = google_news_rss_url(&self.config.query);
+        let locale = GoogleNewsLocale {
+            hl: self.config.hl.clone(),
+            gl: self.config.gl.clone(),
+            ceid: self.config.ceid.clone(),
+        };
+        let url = google_news_rss_url(&self.config.query, &locale);
         let bytes = self.fetch_with_backoff(&url).await?;
         let parsed = parse(&bytes, &self.config.query)?;
 

@@ -7,6 +7,9 @@ group_id = "injector"
 query         = "artificial intelligence"
 interval_secs = 60
 max_retries   = 3
+hl            = "en-US"
+gl            = "US"
+ceid          = "US:en"
 
 [[pollers]]
 query         = "rust programming"

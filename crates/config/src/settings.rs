@@ -29,6 +29,15 @@ pub struct PollerConfig {
     pub interval_secs: u64,
     /// Max retry attempts on HTTP failure before giving up (exponential backoff)
     pub max_retries: u32,
+    /// Google News host language — e.g. `en-US`, `fr-FR`
+    #[serde(default = "default_hl")]
+    pub hl: String,
+    /// Google News geographic location — e.g. `US`, `FR`
+    #[serde(default = "default_gl")]
+    pub gl: String,
+    /// Google News edition — e.g. `US:en`, `FR:fr`
+    #[serde(default = "default_ceid")]
+    pub ceid: String,
 }
 
 impl Settings {
@@ -44,6 +53,18 @@ impl Settings {
 
         Ok(s.try_deserialize()?)
     }
+}
+
+fn default_hl() -> String {
+    "en-US".to_owned()
+}
+
+fn default_gl() -> String {
+    "US".to_owned()
+}
+
+fn default_ceid() -> String {
+    "US:en".to_owned()
 }
 
 #[cfg(test)]
@@ -77,6 +98,9 @@ mod tests {
         assert_eq!(s.pollers[0].query, "artificial intelligence");
         assert_eq!(s.pollers[0].interval_secs, 60);
         assert_eq!(s.pollers[0].max_retries, 3);
+        assert_eq!(s.pollers[0].hl, "en-US");
+        assert_eq!(s.pollers[0].gl, "US");
+        assert_eq!(s.pollers[0].ceid, "US:en");
     }
 
     #[test]
@@ -107,5 +131,34 @@ mod tests {
 
         assert_eq!(s.pollers.len(), 2);
         assert_eq!(s.pollers[1].query, "machine learning");
+    }
+
+    #[test]
+    fn poller_config_should_deserialize_configured_locale() {
+        let raw = r#"
+            [redpanda]
+            brokers  = "localhost:9092"
+            topic    = "injector.news"
+            group_id = "injector"
+
+            [[pollers]]
+            query         = "intelligence artificielle"
+            interval_secs = 60
+            max_retries   = 3
+            hl            = "fr-FR"
+            gl            = "FR"
+            ceid          = "FR:fr"
+        "#;
+
+        let s: Settings = config::Config::builder()
+            .add_source(config::File::from_str(raw, config::FileFormat::Toml))
+            .build()
+            .unwrap()
+            .try_deserialize()
+            .unwrap();
+
+        assert_eq!(s.pollers[0].hl, "fr-FR");
+        assert_eq!(s.pollers[0].gl, "FR");
+        assert_eq!(s.pollers[0].ceid, "FR:fr");
     }
 }
