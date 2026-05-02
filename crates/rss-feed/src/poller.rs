@@ -60,22 +60,30 @@ where
         loop {
             interval.tick().await;
 
-            match self.poll_once().await {
-                Ok(items) => on_items(items).await,
-                Err(error) => {
-                    metrics::counter!("rss_feed_poll_errors_total").increment(1);
-                    error!(query = %self.config.query, %error, "rss feed poll failed after retries");
-                }
+            self.tick_once(&mut on_items).await;
+        }
+    }
+
+    /// Run a single poll tick and call `on_items` on success.
+    ///
+    /// This extracts the loop body from `run`, making poll error handling testable without
+    /// controlling Tokio's interval clock.
+    pub async fn tick_once<H, Fut>(&self, on_items: &mut H)
+    where
+        H: FnMut(Vec<FeedItem>) -> Fut,
+        Fut: Future<Output = ()>,
+    {
+        match self.poll_once().await {
+            Ok(items) => on_items(items).await,
+            Err(error) => {
+                metrics::counter!("rss_feed_poll_errors_total").increment(1);
+                error!(query = %self.config.query, %error, "rss feed poll failed after retries");
             }
         }
     }
 
     async fn fetch_with_backoff(&self, url: &str) -> Result<Vec<u8>, FetchError> {
-        let backoff = ExponentialBuilder::default()
-            .with_max_times(self.config.max_retries as usize)
-            .with_min_delay(Duration::from_secs(1))
-            .with_max_delay(Duration::from_secs(30))
-            .with_jitter();
+        let backoff = build_backoff(self.config.max_retries);
 
         (|| async { self.fetcher.fetch_bytes(url).await })
             .retry(backoff)
@@ -85,6 +93,14 @@ where
             })
             .await
     }
+}
+
+fn build_backoff(max_retries: u32) -> ExponentialBuilder {
+    ExponentialBuilder::default()
+        .with_max_times(max_retries as usize)
+        .with_min_delay(Duration::from_secs(1))
+        .with_max_delay(Duration::from_secs(30))
+        .with_jitter()
 }
 
 fn collect_items(results: Vec<Result<FeedItem, ParseError>>) -> Vec<FeedItem> {
@@ -149,6 +165,26 @@ mod tests {
             source_url: String::new(),
             query: "query".to_owned(),
         }
+    }
+
+    #[tokio::test]
+    async fn tick_once_should_call_handler_with_items() {
+        let poller = Poller::with_fetcher(
+            config(),
+            FakeFetcher {
+                bytes: include_bytes!("../tests/fixtures/google_news.xml").to_vec(),
+            },
+        );
+        let mut seen = Vec::new();
+
+        poller
+            .tick_once(&mut |items| {
+                seen = items;
+                std::future::ready(())
+            })
+            .await;
+
+        assert_eq!(seen.len(), 2);
     }
 
     #[tokio::test]
