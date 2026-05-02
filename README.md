@@ -33,6 +33,9 @@ docker compose up -d
 
 # fmt + lint + test + build
 just ci
+
+# coverage report + 90% line coverage gate
+just coverage
 ```
 
 ## Docs

@@ -35,6 +35,7 @@ Applies to all languages in this project.
 - Every changed line should trace directly to the request
 - One logical change per commit (see `CONTRIBUTING.md`)
 - `just ci` must pass before every commit — no exceptions (`fmt-check`, `lint`, `test`, `build`)
+- Coverage must not drop below the CI gate (`just coverage`, currently 90% line coverage)
 
 ---
 
