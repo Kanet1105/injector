@@ -21,6 +21,7 @@ Library crates use the `metrics` facade only. Prometheus exporter setup lives in
 | Metric | Meaning |
 |---|---|
 | `rss_feed_http_status_errors_total{status}` | HTTP non-2xx responses by status |
+| `rss_feed_fetch_duration_seconds` | HTTP fetch latency including request + body read |
 | `rss_feed_fetch_retry_total` | Fetch retries after transient request failure |
-| `rss_feed_poll_errors_total` | Poll cycle failures |
+| `rss_feed_poll_errors_total` | Poll cycle failures after retries are exhausted |
 | `rss_feed_parse_errors_total` | Malformed RSS entries skipped |
