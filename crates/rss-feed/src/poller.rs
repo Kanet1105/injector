@@ -40,7 +40,7 @@ impl Poller {
         let bytes = self.fetch_with_backoff(&url).await?;
         let parsed = parse(&bytes, &self.config.query)?;
 
-        collect_items(parsed)
+        Ok(collect_items(parsed))
     }
 
     /// Run forever, calling `on_items` after each successful poll.
@@ -82,7 +82,7 @@ impl Poller {
     }
 }
 
-fn collect_items(results: Vec<Result<FeedItem, ParseError>>) -> Result<Vec<FeedItem>, FetchError> {
+fn collect_items(results: Vec<Result<FeedItem, ParseError>>) -> Vec<FeedItem> {
     let mut items = Vec::with_capacity(results.len());
 
     for result in results {
@@ -90,13 +90,12 @@ fn collect_items(results: Vec<Result<FeedItem, ParseError>>) -> Result<Vec<FeedI
             Ok(item) => items.push(item),
             Err(error) => {
                 metrics::counter!("rss_feed_parse_errors_total").increment(1);
-                warn!(%error, "rss feed item parse failed");
-                return Err(FetchError::Parse(error));
+                warn!(%error, "rss feed item parse failed; skipping item");
             }
         }
     }
 
-    Ok(items)
+    items
 }
 
 #[cfg(test)]
@@ -120,26 +119,24 @@ mod tests {
 
     #[test]
     fn collect_items_should_return_all_valid_items() {
-        let items = collect_items(vec![Ok(item("1")), Ok(item("2"))]).unwrap();
+        let items = collect_items(vec![Ok(item("1")), Ok(item("2"))]);
 
         assert_eq!(items.len(), 2);
         assert_eq!(items[1].guid, "2");
     }
 
     #[test]
-    fn collect_items_should_propagate_first_parse_error() {
-        let err = collect_items(vec![
+    fn collect_items_should_skip_malformed_items() {
+        let items = collect_items(vec![
             Ok(item("1")),
             Err(ParseError::MissingTitle {
                 guid: "bad".to_owned(),
             }),
             Ok(item("2")),
-        ])
-        .unwrap_err();
+        ]);
 
-        assert!(matches!(
-            err,
-            FetchError::Parse(ParseError::MissingTitle { .. })
-        ));
+        assert_eq!(items.len(), 2);
+        assert_eq!(items[0].guid, "1");
+        assert_eq!(items[1].guid, "2");
     }
 }
