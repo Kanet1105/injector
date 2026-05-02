@@ -18,11 +18,15 @@ pub struct Poller {
 }
 
 impl Poller {
-    pub fn new(config: PollerConfig) -> Self {
-        Self {
+    pub fn new(config: PollerConfig) -> Result<Self, FetchError> {
+        Ok(Self {
             config,
-            fetcher: FeedFetcher::new(),
-        }
+            fetcher: FeedFetcher::new()?,
+        })
+    }
+
+    pub fn with_fetcher(config: PollerConfig, fetcher: FeedFetcher) -> Self {
+        Self { config, fetcher }
     }
 
     /// Fetch and parse one RSS feed snapshot.
